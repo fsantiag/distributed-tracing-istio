@@ -1,0 +1,42 @@
+version: '2'
+services:
+  flask-init:
+    image: docker.io/istio/proxy_init:0.7.1
+    cap_add:
+      - NET_ADMIN
+    network_mode: "container:poc-istio_flask-pinger_1"
+    command:
+      - -p
+      - "8086"
+      - -u
+      - "1337"
+  flask-sidecar:
+    image: docker.io/istio/proxy_debug:0.7.1
+    network_mode: "container:poc-istio_flask-pinger_1"
+    entrypoint:
+      - su
+      - istio-proxy
+      - -c
+      - "/usr/local/bin/pilot-agent proxy --serviceregistry Eureka --serviceCluster flask-v1 --zipkinAddress zipkin:9411 --configPath /var/lib/istio >/tmp/envoy.log"
+
+  springboot-init:
+    image: docker.io/istio/proxy_init:0.7.1
+    cap_add:
+      - NET_ADMIN
+    network_mode: "container:poc-istio_springboot-sample_1"
+    command:
+      - -p
+      - "8085"
+      - -u
+      - "1337"
+  springboot-sidecar:
+    image: docker.io/istio/proxy_debug:0.7.1
+    network_mode: "container:poc-istio_springboot-sample_1"
+    entrypoint:
+      - su
+      - istio-proxy
+      - -c
+      - "/usr/local/bin/pilot-agent proxy --serviceregistry Eureka --serviceCluster springboot-v1 --zipkinAddress zipkin:9411 --configPath /var/lib/istio >/tmp/envoy.log"
+
+
+
